@@ -1,0 +1,7 @@
+{
+    "hello": {
+      "version": "1.0",
+      "url": "https://github.com/noodle-os/packages/blob/main/hello.tar.gz",
+      "description": "A simple hello world script"
+    }
+  }
