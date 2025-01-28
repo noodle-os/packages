@@ -1,0 +1,83 @@
+#!/bin/sh
+
+PKG_DB="package-db.noodle"
+OUTPUT_DIR="src"
+
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Please run this script as sudo."
+  exit 1
+fi
+
+init_package_builder() {
+  mkdir -p "$OUTPUT_DIR"
+}
+
+log_message() {
+  echo "$(date): $1"
+}
+
+create_pkg
+  script_path=$1
+  version=$2
+  package_name=$3
+
+  if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$package_name" ]; then
+    echo "Error: Missing args. Usage: $0 create <script_path> <version> <package_name>"
+    exit 1
+  fi
+
+  if [ ! -f "$script_path" ]; then
+    echo "Error: Script '$script_path' not found."
+    exit 1
+  fi
+
+  package_dir="$OUTPUT_DIR/$package_name"
+  package_file="$package_dir/$package_name-v$version.tar.gz"
+  mkdir -p "$package_dir"
+
+  temp_dir=$(mktemp -d)
+  mkdir -p "$temp_dir/$package_name"
+  cp "$script_path" "$temp_dir/$package_name/$package_name"
+
+  echo "name=$package_name" > "$temp_dir/$package_name/meta.noodle"
+  echo "version=$version" >> "$temp_dir/$package_name/meta.noodle"
+
+  tar -czf "$package_file" -C "$temp_dir" "$package_name"
+  rm -rf "$temp_dir"
+
+  echo "Package created: $package_file"
+  log_message "Package '$package_name' version $version created at $package_file."
+
+  package_url="https://github.com/noodle-os/packages/raw/refs/heads/main/$package_name/$package_name-v$version.tar.gz"
+  echo "$package_name|$version|$package_url" >> "$PKG_DB"
+  echo "Added entry to $PKG_DB: $package_name|$version|$package_url"
+  log_message "Updated $PKG_DB with $package_name|$version|$package_url."
+}
+
+display_help() {
+  echo "Usage: package_builder.sh <command> [arguments]"
+  echo ""
+  echo "Commands:"
+  echo "  create <script_path> <version> <package_name>    Create a package from a script and update package-db.noodle"
+}
+
+init_package_builder
+
+if [ $# -lt 1 ]; then
+  display_help
+  exit 1
+fi
+
+command=$1
+shift
+
+case $command in
+  create)
+    create_pkg$@"
+    ;;
+  *)
+    echo "Error: Invalid command '$command'."
+    display_help
+    exit 1
+    ;;
+esac
