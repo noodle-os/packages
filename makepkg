@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PKG_DB="package-db.noodle"
-OUTPUT_DIR="src"
+OUTPUT_DIR="."
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "Please run this script as sudo."
@@ -16,7 +16,7 @@ log_message() {
   echo "$(date): $1"
 }
 
-create_pkg
+create_pkg() {
   script_path=$1
   version=$2
   package_name=$3
@@ -49,6 +49,7 @@ create_pkg
   log_message "Package '$package_name' version $version created at $package_file."
 
   package_url="https://github.com/noodle-os/packages/raw/refs/heads/main/$package_name/$package_name-v$version.tar.gz"
+  echo >> "$PKG_DB"
   echo "$package_name|$version|$package_url" >> "$PKG_DB"
   echo "Added entry to $PKG_DB: $package_name|$version|$package_url"
   log_message "Updated $PKG_DB with $package_name|$version|$package_url."
@@ -73,7 +74,7 @@ shift
 
 case $command in
   create)
-    create_pkg$@"
+    create_pkg "$@"
     ;;
   *)
     echo "Error: Invalid command '$command'."
