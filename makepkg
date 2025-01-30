@@ -39,9 +39,6 @@ create_pkg() {
   mkdir -p "$temp_dir/$pkg_name"
   cp "$script_path" "$temp_dir/$pkg_name/$pkg_name"
 
-  echo "name=$pkg_name" > "$temp_dir/$pkg_name/meta.noodle"
-  echo "version=$version" >> "$temp_dir/$pkg_name/meta.noodle"
-
   tar -czf "$pkg_file" -C "$temp_dir" "$pkg_name"
   rm -rf "$temp_dir"
 
