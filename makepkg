@@ -4,99 +4,99 @@ PKG_DB="package-db.noodle"
 OUTPUT_DIR="."
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "Please run this script as sudo."
-  exit 1
+    echo "Please run this script as sudo."
+    exit 1
 fi
 
 init_pkg_builder() {
-  mkdir -p "$OUTPUT_DIR"
+    mkdir -p "$OUTPUT_DIR"
 }
 
 log_message() {
-  echo "$(date): $1"
+    echo "$(date): $1"
 }
 
 create_pkg() {
-  script_path=$1
-  version=$2
-  pkg_name=$3
+    script_path=$1
+    version=$2
+    pkg_name=$3
 
-  if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ]; then
-    echo "Error: Missing args. Usage: $0 create <script_path> <version> <pkg_name>"
-    exit 1
-  fi
+    if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ]; then
+        echo "Error: Missing args. Usage: $0 create <script_path> <version> <pkg_name>"
+        exit 1
+    fi
 
-  if [ ! -f "$script_path" ]; then
-    echo "Error: Script '$script_path' not found."
-    exit 1
-  fi
+    if [ ! -f "$script_path" ]; then
+        echo "Error: Script '$script_path' not found."
+        exit 1
+    fi
 
-  pkg_dir="$OUTPUT_DIR/$pkg_name"
-  pkg_file="$pkg_dir/$pkg_name-v$version.tar.gz"
-  mkdir -p "$pkg_dir"
+    pkg_dir="$OUTPUT_DIR/$pkg_name"
+    pkg_file="$pkg_dir/$pkg_name-v$version.tar.gz"
+    mkdir -p "$pkg_dir"
 
-  temp_dir=$(mktemp -d)
-  mkdir -p "$temp_dir/$pkg_name"
-  cp "$script_path" "$temp_dir/$pkg_name/$pkg_name"
+    temp_dir=$(mktemp -d)
+    mkdir -p "$temp_dir/$pkg_name"
+    cp "$script_path" "$temp_dir/$pkg_name/$pkg_name"
 
-  tar -czf "$pkg_file" -C "$temp_dir" "$pkg_name"
-  rm -rf "$temp_dir"
+    tar -czf "$pkg_file" -C "$temp_dir" "$pkg_name"
+    rm -rf "$temp_dir"
 
-  echo "Pkg created: $pkg_file"
-  log_message "Pkg '$pkg_name' version $version created at $pkg_file."
+    echo "Pkg created: $pkg_file"
+    log_message "Pkg '$pkg_name' version $version created at $pkg_file."
 
-  pkg_url="https://github.com/noodle-os/packages/raw/refs/heads/main/$pkg_name/$pkg_name-v$version.tar.gz"
-  echo "$pkg_name|$version|$pkg_url" >> "$PKG_DB"
-  echo "Added entry to $PKG_DB: $pkg_name|$version|$pkg_url"
-  log_message "Updated $PKG_DB with $pkg_name|$version|$pkg_url."
+    pkg_url="https://github.com/noodle-os/packages/raw/refs/heads/main/$pkg_name/$pkg_name-v$version.tar.gz"
+    echo "$pkg_name|$version|$pkg_url" >>"$PKG_DB"
+    echo "Added entry to $PKG_DB: $pkg_name|$version|$pkg_url"
+    log_message "Updated $PKG_DB with $pkg_name|$version|$pkg_url."
 }
 
 update_pkg() {
-  script_path=$1
-  version=$2
-  pkg_name=$3
+    script_path=$1
+    version=$2
+    pkg_name=$3
 
-  if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ]; then
-    echo "Error: Missing args. Usage: $0 update <script_path> <version> <pkg_name>"
-    exit 1
-  fi
+    if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ]; then
+        echo "Error: Missing args. Usage: $0 update <script_path> <version> <pkg_name>"
+        exit 1
+    fi
 
-  if ! grep -q "^$pkg_name|" "$PKG_DB"; then
-    echo "Error: Pkg '$pkg_name' not found in database. Use 'create' instead."
-    exit 1
-  fi
+    if ! grep -q "^$pkg_name|" "$PKG_DB"; then
+        echo "Error: Pkg '$pkg_name' not found in database. Use 'create' instead."
+        exit 1
+    fi
 
-  sed -i "/^$pkg_name|/d" "$PKG_DB"
+    sed -i "/^$pkg_name|/d" "$PKG_DB"
 
-  create_pkg "$script_path" "$version" "$pkg_name"
+    create_pkg "$script_path" "$version" "$pkg_name"
 }
 
 display_help() {
-  echo "Usage: pkg_builder.sh <command> [arguments]"
-  echo ""
-  echo "Commands:"
-  echo "  create <script_path> <version> <pkg_name>    Create a pkg from a script and update package-db.noodle"
-  echo "  update <script_path> <version> <pkg_name>    Update an existing pkg and update package-db.noodle"
+    echo "Usage: pkg_builder.sh <command> [arguments]"
+    echo ""
+    echo "Commands:"
+    echo "  create <script_path> <version> <pkg_name>    Create a pkg from a script and update package-db.noodle"
+    echo "  update <script_path> <version> <pkg_name>    Update an existing pkg and update package-db.noodle"
 }
 
 init_pkg_builder
 
 if [ $# -lt 1 ]; then
-  display_help
-  exit 1
+    display_help
+    exit 1
 fi
 
 command=$1
 shift
 
 case $command in
-  create)
+create)
     create_pkg "$@"
     ;;
-  update)
+update)
     update_pkg "$@"
     ;;
-  *)
+*)
     echo "Error: Invalid command '$command'."
     display_help
     exit 1
