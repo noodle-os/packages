@@ -4,7 +4,6 @@ KERNEL=$(uname -r)
 UPTIME=$(uptime -p 2>/dev/null || < /proc/uptime awk '{print $1 " seconds"}')
 CPU=$(grep 'model name' /proc/cpuinfo | head -n 1 | cut -d ':' -f2 | xargs)
 MEMORY=$(grep 'MemTotal' /proc/meminfo | awk '{print $2 / 1024 " MB"}')
-DISK=$(df -h / | grep '/' | awk '{print $3 "/" $2}')
 USER=$(whoami)
 DISTRIBUTION=$(grep '^PRETTY_NAME' /etc/os-release | cut -d '=' -f2 | tr -d '"')
 
@@ -16,5 +15,4 @@ echo "Kernel: $KERNEL"
 echo "Uptime: $UPTIME"
 echo "CPU: $CPU"
 echo "Memory: $MEMORY"
-echo "Disk: $DISK"
 echo "Shell: $SHELL"
