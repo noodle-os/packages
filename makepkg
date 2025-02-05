@@ -4,7 +4,7 @@ PKG_DB="package-db.noodle"
 OUTPUT_DIR="."
 
 if [ "$(id -u)" -ne 0 ]; then
-    echo "Please run this script as sudo."
+    echo "Please run this script as sudo -E."
     exit 1
 fi
 
@@ -49,6 +49,16 @@ create_pkg() {
     echo "$pkg_name|$version|$pkg_url" >>"$PKG_DB"
     echo "Added entry to $PKG_DB: $pkg_name|$version|$pkg_url"
     log_message "Updated $PKG_DB with $pkg_name|$version|$pkg_url."
+
+    git add .
+    git commit -m "Added pkg"
+    git push origin main
+
+    cd ../noodle-os.github.io || { echo "Directory not found."; exit 1; }
+    git checkout main
+    git commit --allow-empty -m "Trigger GitHub Pages redeploy"
+    git push origin main
+
 }
 
 update_pkg() {
@@ -69,6 +79,22 @@ update_pkg() {
     sed -i "/^$pkg_name|/d" "$PKG_DB"
 
     create_pkg "$script_path" "$version" "$pkg_name"
+
+    git add .
+    git commit -m "Updated pkg"
+    git push origin main
+
+    cd ../noodle-os.github.io || { echo "Directory not found."; exit 1; }
+    git checkout main
+    git commit --allow-empty -m "Trigger GitHub Pages redeploy"
+    git push origin main
+}
+
+deploy_site() {
+    cd ../noodle-os.github.io || { echo "Directory not found."; exit 1; }
+    git checkout main
+    git commit --allow-empty -m "Trigger GitHub Pages redeploy"
+    git push origin main
 }
 
 display_help() {
@@ -95,6 +121,9 @@ create)
     ;;
 update)
     update_pkg "$@"
+    ;;
+deploy)
+    deploy_site "$@"
     ;;
 *)
     echo "Error: Invalid command '$command'."
