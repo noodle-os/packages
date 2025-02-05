@@ -20,9 +20,10 @@ create_pkg() {
     script_path=$1
     version=$2
     pkg_name=$3
+    description=$4
 
-    if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ]; then
-        echo "Error: Missing args. Usage: $0 create <script_path> <version> <pkg_name>"
+    if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ] || [ -z "$description" ]; then
+        echo "Error: Missing args. Usage: $0 create <script_path> <version> <pkg_name> <description>"
         exit 1
     fi
 
@@ -46,9 +47,9 @@ create_pkg() {
     log_message "Pkg '$pkg_name' version $version created at $pkg_file."
 
     pkg_url="https://github.com/noodle-os/packages/raw/refs/heads/main/$pkg_name/$pkg_name-v$version.tar.gz"
-    echo "$pkg_name|$version|$pkg_url" >>"$PKG_DB"
-    echo "Added entry to $PKG_DB: $pkg_name|$version|$pkg_url"
-    log_message "Updated $PKG_DB with $pkg_name|$version|$pkg_url."
+    echo "$pkg_name|$version|$pkg_url|$description" >>"$PKG_DB"
+    echo "Added entry to $PKG_DB: $pkg_name|$version|$pkg_url|$description"
+    log_message "Updated $PKG_DB with $pkg_name|$version|$pkg_url|$description."
 
     git add .
     git commit -m "Added pkg"
@@ -58,16 +59,16 @@ create_pkg() {
     git checkout main
     git commit --allow-empty -m "Trigger GitHub Pages redeploy"
     git push origin main
-
 }
 
 update_pkg() {
     script_path=$1
     version=$2
     pkg_name=$3
+    description=$4
 
-    if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ]; then
-        echo "Error: Missing args. Usage: $0 update <script_path> <version> <pkg_name>"
+    if [ -z "$script_path" ] || [ -z "$version" ] || [ -z "$pkg_name" ] || [ -z "$description" ]; then
+        echo "Error: Missing args. Usage: $0 update <script_path> <version> <pkg_name> <description>"
         exit 1
     fi
 
@@ -78,7 +79,7 @@ update_pkg() {
 
     sed -i "/^$pkg_name|/d" "$PKG_DB"
 
-    create_pkg "$script_path" "$version" "$pkg_name"
+    create_pkg "$script_path" "$version" "$pkg_name" "$description"
 
     git add .
     git commit -m "Updated pkg"
@@ -101,8 +102,8 @@ display_help() {
     echo "Usage: pkg_builder.sh <command> [arguments]"
     echo ""
     echo "Commands:"
-    echo "  create <script_path> <version> <pkg_name>    Create a pkg from a script and update package-db.noodle"
-    echo "  update <script_path> <version> <pkg_name>    Update an existing pkg and update package-db.noodle"
+    echo "  create <script_path> <version> <pkg_name> <description>    Create a pkg from a script and update package-db.noodle"
+    echo "  update <script_path> <version> <pkg_name> <description>    Update an existing pkg and update package-db.noodle"
 }
 
 init_pkg_builder
