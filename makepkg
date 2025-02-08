@@ -99,7 +99,7 @@ deploy_site() {
 }
 
 display_help() {
-    echo "Usage: pkg_builder.sh <command> [arguments]"
+    echo "Usage: makepkg <command> [arguments]"
     echo ""
     echo "Commands:"
     echo "  create <script_path> <version> <pkg_name> <description>    Create a pkg from a script and update package-db.noodle"
