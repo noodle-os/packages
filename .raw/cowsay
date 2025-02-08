@@ -1,0 +1,22 @@
+#!/bin/sh
+
+if [ -z "$1" ]; then
+    echo "Usage: cowsay \"your message\""
+    exit 1
+fi
+
+msg="$1"
+len=${#msg}
+border=$(printf "%s" "$(head -c "$((len + 2))" </dev/zero | tr '\0' '-')")
+
+echo " $border "
+echo "< $msg >"
+echo " $border "
+
+cat << "EOF"
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+EOF
