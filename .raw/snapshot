@@ -1,0 +1,54 @@
+#!/bin/sh
+
+SNAPSHOT_DIR="$HOME/snapshots"
+[ ! -d "$SNAPSHOT_DIR" ] && mkdir -p "$SNAPSHOT_DIR"
+
+create_snapshot() {
+    if [ -z "$1" ] || [ -z "$2" ]; then
+        echo "Usage: snapshot create <name> <file/folder>"
+        return 1
+    fi
+    name="$1"
+    source="$2"
+    
+    if [ ! -e "$source" ]; then
+        echo "Error: $source does not exist."
+        return 1
+    fi
+
+    timestamp=$(date +"%Y%m%d%H%M%S")
+    snapshot_name="${SNAPSHOT_DIR}/${name}_${timestamp}.tar.gz"
+    
+    tar -czf "$snapshot_name" -C "$(dirname "$source")" "$(basename "$source")"
+    echo "Snapshot created: $snapshot_name"
+}
+
+restore_snapshot() {
+    if [ -z "$1" ]; then
+        echo "Usage: snapshot restore <name>"
+        return 1
+    fi
+    snapshot_name="$1"
+    
+    snapshot_path=$(find "$SNAPSHOT_DIR" -name "${snapshot_name}_*.tar.gz" | sort | tail -n 1)
+    
+    if [ -z "$snapshot_path" ]; then
+        echo "Error: Snapshot $snapshot_name not found."
+        return 1
+    fi
+    
+    tar -xzf "$snapshot_path" -C "$(pwd)"
+    echo "Snapshot restored from: $snapshot_path"
+}
+
+case "$1" in
+    create)
+        create_snapshot "$2" "$3"
+        ;;
+    restore)
+        restore_snapshot "$2"
+        ;;
+    *)
+        echo "Usage: snapshot {create|restore} <name> [file/folder]"
+        ;;
+esac
