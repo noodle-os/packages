@@ -1,11 +1,15 @@
 #!/bin/sh
 
 KERNEL=$(uname -r)
-UPTIME=$(uptime -p 2>/dev/null || < /proc/uptime awk '{print $1 " seconds"}')
-CPU=$(grep 'model name' /proc/cpuinfo | head -n 1 | cut -d ':' -f2 | xargs)
-MEMORY=$(grep 'MemTotal' /proc/meminfo | awk '{print $2 / 1024 " MB"}')
+UPTIME=$(uptime -p 2>/dev/null || awk '{print $1 " seconds"}' < /proc/uptime)
+CPU=$(awk -F: '/model name/ {print $2}' /proc/cpuinfo | head -n 1 | xargs)
+TOTAL_MEMORY=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
+AVAILABLE_MEMORY=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
+USED_MEMORY=$((TOTAL_MEMORY - AVAILABLE_MEMORY))
+TOTAL_MEMORY_MB=$((TOTAL_MEMORY / 1024))
+USED_MEMORY_MB=$((USED_MEMORY / 1024))
 USER=$(whoami)
-DISTRIBUTION=$(grep '^PRETTY_NAME' /etc/os-release | cut -d '=' -f2 | tr -d '"')
+DISTRIBUTION=$(awk -F= '/^PRETTY_NAME/ {gsub(/"/, "", $2); print $2}' /etc/os-release)
 
 echo "System Information"
 echo "------------------"
@@ -14,5 +18,5 @@ echo "User: $USER"
 echo "Kernel: $KERNEL"
 echo "Uptime: $UPTIME"
 echo "CPU: $CPU"
-echo "Memory: $MEMORY"
+echo "Memory: $USED_MEMORY_MB MiB / $TOTAL_MEMORY_MB MiB"
 echo "Shell: $SHELL"
