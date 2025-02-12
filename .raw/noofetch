@@ -3,13 +3,12 @@
 KERNEL=$(uname -r)
 UPTIME=$(uptime -p 2>/dev/null || awk '{print $1 " seconds"}' < /proc/uptime)
 CPU=$(awk -F: '/model name/ {print $2}' /proc/cpuinfo | head -n 1 | xargs)
-TOTAL_MEMORY=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
-AVAILABLE_MEMORY=$(awk '/MemAvailable/ {print $2}' /proc/meminfo)
-USED_MEMORY=$((TOTAL_MEMORY - AVAILABLE_MEMORY))
-TOTAL_MEMORY_MB=$((TOTAL_MEMORY / 1024))
-USED_MEMORY_MB=$((USED_MEMORY / 1024))
 USER=$(whoami)
 DISTRIBUTION=$(awk -F= '/^PRETTY_NAME/ {gsub(/"/, "", $2); print $2}' /etc/os-release)
+MEMORY=$(free -m | awk 'NR==2 {print $3, $2}')
+
+USED_MEMORY_MB=$(echo "$MEMORY" | cut -d' ' -f1)
+TOTAL_MEMORY_MB=$(echo "$MEMORY" | cut -d' ' -f2)
 
 echo "System Information"
 echo "------------------"
